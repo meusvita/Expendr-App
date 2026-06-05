@@ -1152,7 +1152,7 @@ function toast(msg,type='success'){
 }
 
 // ── BOOT ──────────────────────────────────────────────────────────────────────
-document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>{S.view=b.dataset.view;render();}));
+document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>{S.view=b.dataset.view;history.pushState({view:S.view},'','');render();}));
 
 // Load locally cached data immediately so app is never empty on open
 loadLocal();
@@ -1179,6 +1179,28 @@ if(_keys){
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('/sw.js').catch(()=>{});
 }
+
+// Android back button handling
+let backPressedOnce = false, backPressTimer = null;
+history.pushState({view:'dashboard'}, '', '');
+window.addEventListener('popstate', () => {
+  if(S.view !== 'dashboard'){
+    S.view = 'dashboard';
+    history.pushState({view:'dashboard'}, '', '');
+    render();
+  } else {
+    if(backPressedOnce){
+      backPressedOnce = false;
+      history.back();
+    } else {
+      backPressedOnce = true;
+      toast('Press back again to exit');
+      history.pushState({view:'dashboard'}, '', '');
+      clearTimeout(backPressTimer);
+      backPressTimer = setTimeout(() => { backPressedOnce = false; }, 2000);
+    }
+  }
+});
 </script>
 </body>
 </html>
